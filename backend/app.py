@@ -15,7 +15,6 @@ CORS(app)
 # ==========================================
 
 BASE_DIR = Path(__file__).resolve().parent
-
 DATABASE = BASE_DIR / "house_analytics.db"
 
 
@@ -45,6 +44,78 @@ def inicio():
 
 
 # ==========================================
+# LOGIN DE USUARIOS
+# ==========================================
+
+@app.route("/login", methods=["POST"])
+def login():
+
+    datos = request.get_json()
+
+    if not datos:
+
+        return jsonify({
+            "error": "No se recibieron datos"
+        }), 400
+
+
+    correo = datos.get("correo")
+    password = datos.get("password")
+
+
+    if not correo or not password:
+
+        return jsonify({
+            "error": "Correo y contraseña son obligatorios"
+        }), 400
+
+
+    # Usuarios de demostración
+    usuarios = {
+
+        "admin@houseanalytics.com": {
+            "nombre": "Administrador",
+            "rol": "administrador",
+            "password": "admin123"
+        },
+
+        "usuario@houseanalytics.com": {
+            "nombre": "Usuario Demo",
+            "rol": "usuario",
+            "password": "usuario123"
+        }
+
+    }
+
+
+    usuario = usuarios.get(correo)
+
+
+    if usuario is None or usuario["password"] != password:
+
+        return jsonify({
+            "error": "Correo o contraseña incorrectos"
+        }), 401
+
+
+    return jsonify({
+
+        "mensaje": "Inicio de sesión correcto",
+
+        "usuario": {
+
+            "nombre": usuario["nombre"],
+
+            "correo": correo,
+
+            "rol": usuario["rol"]
+
+        }
+
+    })
+
+
+# ==========================================
 # OBTENER TODAS LAS VIVIENDAS
 # ==========================================
 
@@ -59,10 +130,15 @@ def viviendas():
 
     conexion.close()
 
+
     resultado = [
+
         dict(vivienda)
+
         for vivienda in datos
+
     ]
+
 
     return jsonify(resultado)
 
@@ -77,17 +153,24 @@ def vivienda(id):
     conexion = conectar_db()
 
     resultado = conexion.execute(
+
         "SELECT * FROM viviendas WHERE ID = ?",
+
         (id,)
+
     ).fetchone()
 
     conexion.close()
 
+
     if resultado is None:
 
         return jsonify({
+
             "error": "Vivienda no encontrada"
+
         }), 404
+
 
     return jsonify(dict(resultado))
 
@@ -107,25 +190,37 @@ def editar_vivienda(id):
     if not datos:
 
         return jsonify({
+
             "error": "No se recibieron datos"
+
         }), 400
 
 
     precio = datos.get("Precio")
+
     area = datos.get("MetrosCuadrados")
+
     habitaciones = datos.get("Habitaciones")
+
     banos = datos.get("Banos")
 
 
     if (
+
         precio is None or
+
         area is None or
+
         habitaciones is None or
+
         banos is None
+
     ):
 
         return jsonify({
+
             "error": "Todos los campos son obligatorios"
+
         }), 400
 
 
@@ -133,8 +228,11 @@ def editar_vivienda(id):
 
 
     vivienda_existente = conexion.execute(
+
         "SELECT * FROM viviendas WHERE ID = ?",
+
         (id,)
+
     ).fetchone()
 
 
@@ -143,27 +241,46 @@ def editar_vivienda(id):
         conexion.close()
 
         return jsonify({
+
             "error": "Vivienda no encontrada"
+
         }), 404
 
 
     conexion.execute(
+
         """
+
         UPDATE viviendas
+
         SET
+
             Precio = ?,
+
             MetrosCuadrados = ?,
+
             Habitaciones = ?,
+
             "Baños" = ?
+
         WHERE ID = ?
+
         """,
+
         (
+
             precio,
+
             area,
+
             habitaciones,
+
             banos,
+
             id
+
         )
+
     )
 
 
@@ -173,7 +290,9 @@ def editar_vivienda(id):
 
 
     return jsonify({
+
         "mensaje": "Vivienda actualizada correctamente"
+
     })
 
 
@@ -192,25 +311,37 @@ def agregar_vivienda():
     if not datos:
 
         return jsonify({
+
             "error": "No se recibieron datos"
+
         }), 400
 
 
     precio = datos.get("Precio")
+
     area = datos.get("MetrosCuadrados")
+
     habitaciones = datos.get("Habitaciones")
+
     banos = datos.get("Banos")
 
 
     if (
+
         precio is None or
+
         area is None or
+
         habitaciones is None or
+
         banos is None
+
     ):
 
         return jsonify({
+
             "error": "Todos los campos son obligatorios"
+
         }), 400
 
 
@@ -218,14 +349,19 @@ def agregar_vivienda():
 
 
     # Obtener el último ID
+
     resultado_id = conexion.execute(
+
         "SELECT MAX(ID) FROM viviendas"
+
     ).fetchone()
 
 
     ultimo_id = resultado_id[0]
 
+
     if ultimo_id is None:
+
         ultimo_id = 0
 
 
@@ -233,25 +369,45 @@ def agregar_vivienda():
 
 
     # Insertar la nueva vivienda
+
     conexion.execute(
+
         """
+
         INSERT INTO viviendas
+
         (
+
             ID,
+
             Precio,
+
             MetrosCuadrados,
+
             Habitaciones,
+
             "Baños"
+
         )
+
         VALUES (?, ?, ?, ?, ?)
+
         """,
+
         (
+
             nuevo_id,
+
             precio,
+
             area,
+
             habitaciones,
+
             banos
+
         )
+
     )
 
 
@@ -261,8 +417,11 @@ def agregar_vivienda():
 
 
     return jsonify({
+
         "mensaje": "Vivienda agregada correctamente",
+
         "id": nuevo_id
+
     }), 201
 
 
@@ -280,8 +439,11 @@ def eliminar_vivienda(id):
 
 
     vivienda_existente = conexion.execute(
+
         "SELECT * FROM viviendas WHERE ID = ?",
+
         (id,)
+
     ).fetchone()
 
 
@@ -290,13 +452,18 @@ def eliminar_vivienda(id):
         conexion.close()
 
         return jsonify({
+
             "error": "Vivienda no encontrada"
+
         }), 404
 
 
     conexion.execute(
+
         "DELETE FROM viviendas WHERE ID = ?",
+
         (id,)
+
     )
 
 
@@ -306,7 +473,9 @@ def eliminar_vivienda(id):
 
 
     return jsonify({
+
         "mensaje": "Vivienda eliminada correctamente"
+
     })
 
 
@@ -317,14 +486,24 @@ def eliminar_vivienda(id):
 if __name__ == "__main__":
 
     puerto = int(
+
         os.environ.get(
+
             "PORT",
+
             5000
+
         )
+
     )
 
+
     app.run(
+
         host="0.0.0.0",
+
         port=puerto,
+
         debug=False
+
     )
