@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Administración | House Analytics</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #f4f6f8;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 25px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            font-size: 25px;
+        }
+
+        header p {
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+
+        .logout {
+            background: white;
+            color: #1e3c72;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .logout:hover {
+            background: #eeeeee;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 35px auto;
+            padding: 0 20px;
+        }
+
+        .top-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .top-section h2 {
+            color: #1e3c72;
+        }
+
+        .add-button {
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .add-button:hover {
+            background: #2a5298;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #1e3c72;
+            color: white;
+            padding: 14px;
+            text-align: left;
+        }
+
+        td {
+            padding: 13px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .edit-button {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .delete-button {
+            background: #c62828;
+            color: white;
+            border: none;
+            padding: 7px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: 5px;
+        }
+
+        .edit-button:hover {
+            background: #1e3c72;
+        }
+
+        .delete-button:hover {
+            background: #a51f1f;
+        }
+
+        .message {
+            display: none;
+            margin-bottom: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .success {
+            background: #e5f7e5;
+            color: #2e7d32;
+        }
+
+        .error {
+            background: #ffe5e5;
+            color: #c62828;
+        }
+
+        /* Modal */
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            width: 100%;
+            max-width: 500px;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .modal-content h2 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 11px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font-size: 15px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 5px;
+        }
+
+        .save-button {
+            flex: 1;
+            background: #1e3c72;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .cancel-button {
+            flex: 1;
+            background: #777;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 30px;
+            color: #777;
+        }
+
+        @media (max-width: 700px) {
+
+            header {
+                padding: 20px;
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .top-section {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            .add-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+
+        <div>
+            <h1>🔨 Panel de Administración</h1>
+
+            <p>
+                House Analytics
+            </p>
+        </div>
+
+        <button
+            class="logout"
+            id="logout"
+        >
+            Cerrar sesión
+        </button>
+
+    </header>
+
+
+    <main class="container">
+
+        <div class="top-section">
+
+            <div>
+                <h2>Gestión de viviendas</h2>
+
+                <p>
+                    Administra los datos del catálogo.
+                </p>
+            </div>
+
+            <button
+                class="add-button"
+                id="addHouse"
+            >
+                + Agregar vivienda
+            </button>
+
+        </div>
+
+
+        <div
+            id="message"
+            class="message"
+        ></div>
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>ID</th>
+                        <th>Precio</th>
+                        <th>Área (m²)</th>
+                        <th>Habitaciones</th>
+                        <th>Baños</th>
+                        <th>Acciones</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="housesTable">
+
+                    <tr>
+                        <td
+                            colspan="6"
+                            class="empty"
+                        >
+                            Cargando viviendas...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </main>
+
+
+    <!-- MODAL PARA EDITAR / AGREGAR -->
+
+    <div
+        id="modal"
+        class="modal"
+    >
+
+        <div class="modal-content">
+
+            <h2 id="modalTitle">
+                Editar vivienda
+            </h2>
+
+
+            <label for="precio">
+                Precio
+            </label>
+
+            <input
+                type="number"
+                id="precio"
+                min="0"
+            >
+
+
+            <label for="area">
+                Área en metros cuadrados
+            </label>
+
+            <input
+                type="number"
+                id="area"
+                min="0"
+            >
+
+
+            <label for="habitaciones">
+                Habitaciones
+            </label>
+
+            <input
+                type="number"
+                id="habitaciones"
+                min="0"
+            >
+
+
+            <label for="banos">
+                Baños
+            </label>
+
+            <input
+                type="number"
+                id="banos"
+                min="0"
+            >
+
+
+            <div class="modal-buttons">
+
+                <button
+                    class="save-button"
+                    id="saveHouse"
+                >
+                    Guardar cambios
+                </button>
+
+                <button
+                    class="cancel-button"
+                    id="cancelModal"
+                >
+                    Cancelar
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        // ==========================================
+        // PROTECCIÓN DEL PANEL
+        // ==========================================
+
+        if (localStorage.getItem("admin") !== "true") {
+
+            window.location.href = "login.html";
+
+        }
+
+
+        // ==========================================
+        // CONFIGURACIÓN
+        // ==========================================
+
+        const API =
+            "https://house-analytics-2d9u.onrender.com";
+
+
+        let viviendas = [];
+
+        let viviendaSeleccionada = null;
+
+        let modo = "editar";
+
+
+        // ==========================================
+        // ELEMENTOS
+        // ==========================================
+
+        const tabla =
+            document.getElementById("housesTable");
+
+        const modal =
+            document.getElementById("modal");
+
+        const modalTitle =
+            document.getElementById("modalTitle");
+
+        const precio =
+            document.getElementById("precio");
+
+        const area =
+            document.getElementById("area");
+
+        const habitaciones =
+            document.getElementById("habitaciones");
+
+        const baños =
+            document.getElementById("baños");
+
+        const message =
+            document.getElementById("message");
+
+
+        // ==========================================
+        // CARGAR VIVIENDAS
+        // ==========================================
+
+        async function cargarViviendas() {
+
+            try {
+
+                const respuesta =
+                    await fetch(
+                        API + "/api/viviendas"
+                    );
+
+                if (!respuesta.ok) {
+
+                    throw new Error(
+                        "No se pudieron cargar las viviendas."
+                    );
+
+                }
+
+                viviendas =
+                    await respuesta.json();
+
+                mostrarViviendas();
+
+            } catch (error) {
+
+                console.error(error);
+
+                mostrarMensaje(
+                    "Error al cargar las viviendas.",
+                    "error"
+                );
+
+            }
+
+        }
+
+
+        // ==========================================
+        // MOSTRAR VIVIENDAS
+        // ==========================================
+
+        function mostrarViviendas() {
+
+            tabla.innerHTML = "";
+
+            if (viviendas.length === 0) {
+
+                tabla.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="empty">
+                            No hay viviendas registradas.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+
+            }
+
+
+            viviendas.forEach(function(vivienda) {
+
+                const fila =
+                    document.createElement("tr");
+
+
+                fila.innerHTML = `
+
+                    <td>${vivienda.ID}</td>
+
+                    <td>
+                        $${Number(vivienda.Precio).toLocaleString()}
+                    </td>
+
+                    <td>
+                        ${vivienda.MetrosCuadrados}
+                    </td>
+
+                    <td>
+                        ${vivienda.Habitaciones}
+                    </td>
+
+                    <td>
+                        ${vivienda["Baños"]}
+</td>
+
+                    <td>
+
+                        <button
+                            class="edit-button"
+                            onclick="editarVivienda(${vivienda.ID})"
+                        >
+                            Editar
+                        </button>
+
+                        <button
+                            class="delete-button"
+                            onclick="eliminarVivienda(${vivienda.ID})"
+                        >
+                            Eliminar
+                        </button>
+
+                    </td>
+
+                `;
+
+                tabla.appendChild(fila);
+
+            });
+
+        }
+
+
+        // ==========================================
+        // EDITAR
+        // ==========================================
+
+        function editarVivienda(id) {
+
+            const vivienda =
+                viviendas.find(
+                    function(item) {
+                        return item.ID === id;
+                    }
+                );
+
+            if (!vivienda) {
+                return;
+            }
+
+            modo = "editar";
+
+            viviendaSeleccionada = id;
+
+            modalTitle.textContent =
+                "Editar vivienda #" + id;
+
+            precio.value =
+                vivienda.Precio;
+
+            area.value =
+                vivienda.MetrosCuadrados;
+
+            habitaciones.value =
+                vivienda.Habitaciones;
+
+            banos.value =
+              vivienda["Baños"];
+
+            modal.style.display = "flex";
+
+        }
+
+
+        // ==========================================
+        // AGREGAR
+        // ==========================================
+
+        document
+            .getElementById("addHouse")
+            .addEventListener("click", function() {
+
+                modo = "agregar";
+
+                viviendaSeleccionada = null;
+
+                modalTitle.textContent =
+                    "Agregar vivienda";
+
+                precio.value = "";
+
+                area.value = "";
+
+                habitaciones.value = "";
+
+                banos.value = "";
+
+                modal.style.display = "flex";
+
+            });
+
+
+        // ==========================================
+        // CERRAR MODAL
+        // ==========================================
+
+        document
+            .getElementById("cancelModal")
+            .addEventListener("click", function() {
+
+                modal.style.display = "none";
+
+            });
+
+
+        // ==========================================
+        // GUARDAR
+        // ==========================================
+
+        document
+            .getElementById("saveHouse")
+            .addEventListener("click", async function() {
+
+                const datos = {
+
+                    Precio:
+                        Number(precio.value),
+
+                    MetrosCuadrados:
+                        Number(area.value),
+
+                    Habitaciones:
+                        Number(habitaciones.value),
+
+                    "Banos":
+        Number(banos.value)
+
+                };
+
+
+                if (
+                    !datos.Precio ||
+                    !datos.MetrosCuadrados ||
+                    datos.Habitaciones < 0 ||
+                    datos.Banos < 0
+                ) {
+
+                    mostrarMensaje(
+                        "Completa correctamente todos los campos.",
+                        "error"
+                    );
+
+                    return;
+
+                }
+
+
+                try {
+
+                    let respuesta;
+
+
+                    // EDITAR
+                    if (modo === "editar") {
+
+                        respuesta =
+                            await fetch(
+                                API +
+                                "/api/viviendas/" +
+                                viviendaSeleccionada,
+                                {
+                                    method: "PUT",
+
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json"
+                                    },
+
+                                    body:
+                                        JSON.stringify(datos)
+                                }
+                            );
+
+                    }
+
+
+                    // AGREGAR
+                    else {
+
+                        respuesta =
+                            await fetch(
+                                API + "/api/viviendas",
+                                {
+                                    method: "POST",
+
+                                    headers: {
+                                        "Content-Type":
+                                            "application/json"
+                                    },
+
+                                    body:
+                                        JSON.stringify(datos)
+                                }
+                            );
+
+                    }
+
+
+                    const resultado =
+                        await respuesta.json();
+
+
+                    if (!respuesta.ok) {
+
+                        throw new Error(
+                            resultado.error ||
+                            "No se pudo guardar."
+                        );
+
+                    }
+
+
+                    modal.style.display =
+                        "none";
+
+
+                    mostrarMensaje(
+                        modo === "editar"
+                            ? "Vivienda actualizada correctamente."
+                            : "Vivienda agregada correctamente.",
+                        "success"
+                    );
+
+
+                    await cargarViviendas();
+
+                } catch (error) {
+
+                    console.error(error);
+
+                    mostrarMensaje(
+                        error.message,
+                        "error"
+                    );
+
+                }
+
+            });
+
+
+        // ==========================================
+        // ELIMINAR
+        // ==========================================
+
+        async function eliminarVivienda(id) {
+
+            const confirmar =
+                confirm(
+                    "¿Seguro que deseas eliminar la vivienda #" +
+                    id +
+                    "?"
+                );
+
+            if (!confirmar) {
+                return;
+            }
+
+
+            try {
+
+                const respuesta =
+                    await fetch(
+                        API +
+                        "/api/viviendas/" +
+                        id,
+                        {
+                            method: "DELETE"
+                        }
+                    );
+
+
+                const resultado =
+                    await respuesta.json();
+
+
+                if (!respuesta.ok) {
+
+                    throw new Error(
+                        resultado.error ||
+                        "No se pudo eliminar."
+                    );
+
+                }
+
+
+                mostrarMensaje(
+                    "Vivienda eliminada correctamente.",
+                    "success"
+                );
+
+
+                await cargarViviendas();
+
+            } catch (error) {
+
+                console.error(error);
+
+                mostrarMensaje(
+                    error.message,
+                    "error"
+                );
+
+            }
+
+        }
+
+
+        // ==========================================
+        // MENSAJES
+        // ==========================================
+
+        function mostrarMensaje(texto, tipo) {
+
+            message.textContent =
+                texto;
+
+            message.className =
+                "message " + tipo;
+
+            message.style.display =
+                "block";
+
+
+            setTimeout(function() {
+
+                message.style.display =
+                    "none";
+
+            }, 4000);
+
+        }
+
+
+        // ==========================================
+        // CERRAR SESIÓN
+        // ==========================================
+
+        document
+            .getElementById("logout")
+            .addEventListener("click", function() {
+
+                localStorage.removeItem("admin");
+
+                window.location.href =
+                    "login.html";
+
+            });
+
+
+        // ==========================================
+        // INICIAR
+        // ==========================================
+
+        cargarViviendas();
+
+    </script>
+
+</body>
+
+</html>

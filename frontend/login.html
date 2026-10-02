@@ -123,6 +123,64 @@
         .demo p {
             margin-top: 6px;
         }
+
+        /* ================================
+           ACCESO ADMINISTRATIVO
+           ================================ */
+
+        .admin-access {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .admin-access button {
+            width: auto;
+            padding: 8px 14px;
+            background: transparent;
+            color: #777;
+            font-size: 13px;
+            font-weight: normal;
+        }
+
+        .admin-access button:hover {
+            background: #f4f6f8;
+            color: #1e3c72;
+        }
+
+        .admin-panel {
+            display: none;
+            margin-top: 20px;
+            padding: 18px;
+            background: #f4f6f8;
+            border-radius: 10px;
+        }
+
+        .admin-panel h3 {
+            color: #1e3c72;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .admin-panel input {
+            margin-bottom: 12px;
+        }
+
+        .admin-button {
+            background: #1e3c72;
+        }
+
+        .admin-button:hover {
+            background: #2a5298;
+        }
+
+        .cancel-button {
+            margin-top: 8px;
+            background: #777;
+        }
+
+        .cancel-button:hover {
+            background: #555;
+        }
     </style>
 </head>
 
@@ -138,6 +196,7 @@
             Inicia sesión para continuar
         </p>
 
+        <!-- LOGIN NORMAL -->
         <form id="loginForm">
 
             <label for="correo">
@@ -174,6 +233,7 @@
             Inicio de sesión correcto. Entrando...
         </div>
 
+        <!-- USUARIOS DE PRUEBA -->
         <div class="demo">
 
             <strong>Usuarios de prueba</strong>
@@ -200,10 +260,65 @@
 
         </div>
 
+        <!-- ACCESO ADMINISTRATIVO -->
+        <div class="admin-access">
+
+            <button
+                type="button"
+                id="adminAccess"
+            >
+                🔨 Acceso administrativo
+            </button>
+
+        </div>
+
+        <!-- PANEL DE CONTRASEÑA ADMIN -->
+        <div
+            id="adminPanel"
+            class="admin-panel"
+        >
+
+            <h3>
+                Acceso administrativo
+            </h3>
+
+            <input
+                type="password"
+                id="adminPassword"
+                placeholder="Contraseña de administrador"
+            >
+
+            <button
+                type="button"
+                class="admin-button"
+                id="adminLogin"
+            >
+                Entrar como administrador
+            </button>
+
+            <button
+                type="button"
+                class="cancel-button"
+                id="cancelAdmin"
+            >
+                Cancelar
+            </button>
+
+            <div
+                id="adminError"
+                class="error"
+            ></div>
+
+        </div>
+
     </div>
 
 
     <script>
+
+        // ==========================================
+        // LOGIN NORMAL
+        // ==========================================
 
         document
             .getElementById("loginForm")
@@ -291,7 +406,7 @@
                     // Mostrar mensaje de éxito
                     success.style.display = "block";
 
-                    // Esperar un momento y entrar al catálogo
+                    // Entrar al catálogo
                     setTimeout(function() {
 
                         window.location.href = "index.html";
@@ -309,6 +424,89 @@
                         "Error de conexión: " + e.message;
 
                     error.style.display = "block";
+                }
+
+            });
+
+
+        // ==========================================
+        // ACCESO ADMINISTRATIVO
+        // ==========================================
+
+        document
+            .getElementById("adminAccess")
+            .addEventListener("click", function() {
+
+                document
+                    .getElementById("adminPanel")
+                    .style.display = "block";
+
+            });
+
+
+        // ==========================================
+        // CANCELAR ACCESO ADMIN
+        // ==========================================
+
+        document
+            .getElementById("cancelAdmin")
+            .addEventListener("click", function() {
+
+                document
+                    .getElementById("adminPanel")
+                    .style.display = "none";
+
+                document
+                    .getElementById("adminPassword")
+                    .value = "";
+
+                document
+                    .getElementById("adminError")
+                    .style.display = "none";
+
+            });
+
+
+        // ==========================================
+        // VALIDAR ADMINISTRADOR
+        // ==========================================
+
+        document
+            .getElementById("adminLogin")
+            .addEventListener("click", function() {
+
+                const password =
+                    document.getElementById("adminPassword").value;
+
+                const error =
+                    document.getElementById("adminError");
+
+                error.style.display = "none";
+
+                /*
+                    POR AHORA usamos esta contraseña
+                    únicamente para probar el flujo.
+
+                    Después vamos a mover esta validación
+                    al backend para que sea más correcta.
+                */
+
+                if (password === "admin123") {
+
+                    localStorage.setItem(
+                        "admin",
+                        "true"
+                    );
+
+                    window.location.href = "admin.html";
+
+                } else {
+
+                    error.textContent =
+                        "Contraseña de administrador incorrecta.";
+
+                    error.style.display = "block";
+
                 }
 
             });
