@@ -1,14 +1,20 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 import sqlite3
+import os
+from pathlib import Path
 
 app = Flask(__name__)
 CORS(app)
 
+# Ruta de la base de datos
+BASE_DIR = Path(__file__).resolve().parent
+DATABASE = BASE_DIR / "house_analytics.db"
+
 
 # Conectar con la base de datos
 def conectar_db():
-    conexion = sqlite3.connect("house_analytics.db")
+    conexion = sqlite3.connect(DATABASE)
     conexion.row_factory = sqlite3.Row
     return conexion
 
@@ -55,7 +61,6 @@ def vivienda(id):
     conexion.close()
 
     if resultado is None:
-
         return jsonify({
             "error": "Vivienda no encontrada"
         }), 404
@@ -65,7 +70,10 @@ def vivienda(id):
 
 # Ejecutar servidor
 if __name__ == "__main__":
+    puerto = int(os.environ.get("PORT", 5000))
+
     app.run(
-        debug=True,
-        port=5000
+        host="0.0.0.0",
+        port=puerto,
+        debug=False
     )
