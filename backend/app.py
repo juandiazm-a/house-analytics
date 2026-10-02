@@ -5,63 +5,49 @@ import os
 from pathlib import Path
 
 app = Flask(__name__)
+
+# Permitir conexiones desde el frontend
 CORS(app)
 
-# Ruta de la base de datos
+
+# ==========================================
+# CONFIGURACIÓN DE LA BASE DE DATOS
+# ==========================================
+
 BASE_DIR = Path(__file__).resolve().parent
+
 DATABASE = BASE_DIR / "house_analytics.db"
 
 
-# Conectar con la base de datos
+# ==========================================
+# CONEXIÓN CON LA BASE DE DATOS
+# ==========================================
+
 def conectar_db():
+
     conexion = sqlite3.connect(DATABASE)
+
     conexion.row_factory = sqlite3.Row
+
     return conexion
 
 
-# Crear tabla de usuarios
-def crear_tabla_usuarios():
-    conexion = conectar_db()
+# ==========================================
+# PÁGINA PRINCIPAL
+# ==========================================
 
-    conexion.execute("""
-        CREATE TABLE IF NOT EXISTS usuarios (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nombre TEXT NOT NULL,
-            correo TEXT UNIQUE NOT NULL,
-            rol TEXT NOT NULL,
-            password TEXT
-        )
-    """)
-
-    conexion.execute("""
-        INSERT OR IGNORE INTO usuarios
-        (id, nombre, correo, rol, password)
-        VALUES
-        (1, 'Administrador', 'admin@houseanalytics.com',
-        'administrador', 'admin123')
-    """)
-
-    conexion.execute("""
-        INSERT OR IGNORE INTO usuarios
-        (id, nombre, correo, rol, password)
-        VALUES
-        (2, 'Usuario Demo', 'usuario@houseanalytics.com',
-        'usuario', 'usuario123')
-    """)
-
-    conexion.commit()
-    conexion.close()
-
-
-# Página principal
 @app.route("/")
 def inicio():
+
     return jsonify({
         "mensaje": "API de House Analytics funcionando"
     })
 
 
-# Obtener todas las viviendas
+# ==========================================
+# OBTENER TODAS LAS VIVIENDAS
+# ==========================================
+
 @app.route("/api/viviendas")
 def viviendas():
 
@@ -73,15 +59,18 @@ def viviendas():
 
     conexion.close()
 
-    viviendas = [
+    resultado = [
         dict(vivienda)
         for vivienda in datos
     ]
 
-    return jsonify(viviendas)
+    return jsonify(resultado)
 
 
-# Obtener una vivienda específica
+# ==========================================
+# OBTENER UNA VIVIENDA
+# ==========================================
+
 @app.route("/api/viviendas/<int:id>")
 def vivienda(id):
 
@@ -95,6 +84,7 @@ def vivienda(id):
     conexion.close()
 
     if resultado is None:
+
         return jsonify({
             "error": "Vivienda no encontrada"
         }), 404
@@ -102,55 +92,236 @@ def vivienda(id):
     return jsonify(dict(resultado))
 
 
-# Inicio de sesión
-@app.route("/login", methods=["POST"])
-def login():
+# ==========================================
+# EDITAR UNA VIVIENDA
+# ==========================================
+
+@app.route(
+    "/api/viviendas/<int:id>",
+    methods=["PUT"]
+)
+def editar_vivienda(id):
 
     datos = request.get_json()
 
     if not datos:
+
         return jsonify({
             "error": "No se recibieron datos"
         }), 400
 
-    correo = datos.get("correo")
-    password = datos.get("password")
 
-    if not correo or not password:
+    precio = datos.get("Precio")
+    area = datos.get("MetrosCuadrados")
+    habitaciones = datos.get("Habitaciones")
+    banos = datos.get("Banos")
+
+
+    if (
+        precio is None or
+        area is None or
+        habitaciones is None or
+        banos is None
+    ):
+
         return jsonify({
-            "error": "Correo y contraseña son obligatorios"
+            "error": "Todos los campos son obligatorios"
         }), 400
+
 
     conexion = conectar_db()
 
-    usuario = conexion.execute(
-        """
-        SELECT id, nombre, correo, rol
-        FROM usuarios
-        WHERE correo = ? AND password = ?
-        """,
-        (correo, password)
+
+    vivienda_existente = conexion.execute(
+        "SELECT * FROM viviendas WHERE ID = ?",
+        (id,)
     ).fetchone()
+
+
+    if vivienda_existente is None:
+
+        conexion.close()
+
+        return jsonify({
+            "error": "Vivienda no encontrada"
+        }), 404
+
+
+    conexion.execute(
+        """
+        UPDATE viviendas
+        SET
+            Precio = ?,
+            MetrosCuadrados = ?,
+            Habitaciones = ?,
+            "Baños" = ?
+        WHERE ID = ?
+        """,
+        (
+            precio,
+            area,
+            habitaciones,
+            banos,
+            id
+        )
+    )
+
+
+    conexion.commit()
 
     conexion.close()
 
-    if usuario is None:
-        return jsonify({
-            "error": "Correo o contraseña incorrectos"
-        }), 401
 
     return jsonify({
-        "mensaje": "Inicio de sesión correcto",
-        "usuario": dict(usuario)
+        "mensaje": "Vivienda actualizada correctamente"
     })
 
 
-# Ejecutar servidor
+# ==========================================
+# AGREGAR UNA VIVIENDA
+# ==========================================
+
+@app.route(
+    "/api/viviendas",
+    methods=["POST"]
+)
+def agregar_vivienda():
+
+    datos = request.get_json()
+
+    if not datos:
+
+        return jsonify({
+            "error": "No se recibieron datos"
+        }), 400
+
+
+    precio = datos.get("Precio")
+    area = datos.get("MetrosCuadrados")
+    habitaciones = datos.get("Habitaciones")
+    banos = datos.get("Banos")
+
+
+    if (
+        precio is None or
+        area is None or
+        habitaciones is None or
+        banos is None
+    ):
+
+        return jsonify({
+            "error": "Todos los campos son obligatorios"
+        }), 400
+
+
+    conexion = conectar_db()
+
+
+    # Obtener el último ID
+    resultado_id = conexion.execute(
+        "SELECT MAX(ID) FROM viviendas"
+    ).fetchone()
+
+
+    ultimo_id = resultado_id[0]
+
+    if ultimo_id is None:
+        ultimo_id = 0
+
+
+    nuevo_id = ultimo_id + 1
+
+
+    # Insertar la nueva vivienda
+    conexion.execute(
+        """
+        INSERT INTO viviendas
+        (
+            ID,
+            Precio,
+            MetrosCuadrados,
+            Habitaciones,
+            "Baños"
+        )
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (
+            nuevo_id,
+            precio,
+            area,
+            habitaciones,
+            banos
+        )
+    )
+
+
+    conexion.commit()
+
+    conexion.close()
+
+
+    return jsonify({
+        "mensaje": "Vivienda agregada correctamente",
+        "id": nuevo_id
+    }), 201
+
+
+# ==========================================
+# ELIMINAR UNA VIVIENDA
+# ==========================================
+
+@app.route(
+    "/api/viviendas/<int:id>",
+    methods=["DELETE"]
+)
+def eliminar_vivienda(id):
+
+    conexion = conectar_db()
+
+
+    vivienda_existente = conexion.execute(
+        "SELECT * FROM viviendas WHERE ID = ?",
+        (id,)
+    ).fetchone()
+
+
+    if vivienda_existente is None:
+
+        conexion.close()
+
+        return jsonify({
+            "error": "Vivienda no encontrada"
+        }), 404
+
+
+    conexion.execute(
+        "DELETE FROM viviendas WHERE ID = ?",
+        (id,)
+    )
+
+
+    conexion.commit()
+
+    conexion.close()
+
+
+    return jsonify({
+        "mensaje": "Vivienda eliminada correctamente"
+    })
+
+
+# ==========================================
+# INICIAR SERVIDOR
+# ==========================================
+
 if __name__ == "__main__":
 
-    crear_tabla_usuarios()
-
-    puerto = int(os.environ.get("PORT", 5000))
+    puerto = int(
+        os.environ.get(
+            "PORT",
+            5000
+        )
+    )
 
     app.run(
         host="0.0.0.0",
