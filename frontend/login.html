@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | House Analytics</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+        }
+
+        .login-container {
+            width: 380px;
+            background: white;
+            padding: 40px;
+            border-radius: 18px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .logo {
+            text-align: center;
+            font-size: 45px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3c72;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #777;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px;
+            margin-bottom: 18px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #2a5298;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            background: #1e3c72;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2a5298;
+        }
+
+        .error {
+            display: none;
+            margin-top: 15px;
+            padding: 10px;
+            background: #ffe5e5;
+            color: #c62828;
+            border-radius: 8px;
+            text-align: center;
+            word-wrap: break-word;
+        }
+
+        .success {
+            display: none;
+            margin-top: 15px;
+            padding: 10px;
+            background: #e5f7e5;
+            color: #2e7d32;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .demo {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f4f6f8;
+            border-radius: 10px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .demo strong {
+            color: #1e3c72;
+        }
+
+        .demo p {
+            margin-top: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-container">
+
+        <div class="logo">🏠</div>
+
+        <h1>House Analytics</h1>
+
+        <p class="subtitle">
+            Inicia sesión para continuar
+        </p>
+
+        <form id="loginForm">
+
+            <label for="correo">
+                Correo electrónico
+            </label>
+
+            <input
+                type="email"
+                id="correo"
+                placeholder="Ingrese su correo"
+                required
+            >
+
+            <label for="password">
+                Contraseña
+            </label>
+
+            <input
+                type="password"
+                id="password"
+                placeholder="Ingrese su contraseña"
+                required
+            >
+
+            <button type="submit">
+                Iniciar sesión
+            </button>
+
+        </form>
+
+        <div id="error" class="error"></div>
+
+        <div id="success" class="success">
+            Inicio de sesión correcto. Entrando...
+        </div>
+
+        <div class="demo">
+
+            <strong>Usuarios de prueba</strong>
+
+            <p>
+                👨‍💼 Administrador:
+                admin@houseanalytics.com
+            </p>
+
+            <p>
+                🔑 Contraseña: admin123
+            </p>
+
+            <br>
+
+            <p>
+                👤 Usuario:
+                usuario@houseanalytics.com
+            </p>
+
+            <p>
+                🔑 Contraseña: usuario123
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        document
+            .getElementById("loginForm")
+            .addEventListener("submit", async function(event) {
+
+                event.preventDefault();
+
+                const correo =
+                    document.getElementById("correo").value.trim();
+
+                const password =
+                    document.getElementById("password").value;
+
+                const error =
+                    document.getElementById("error");
+
+                const success =
+                    document.getElementById("success");
+
+                error.style.display = "none";
+                success.style.display = "none";
+
+                try {
+
+                    const respuesta = await fetch(
+                        "http://127.0.0.1:5002/login",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                correo: correo,
+                                password: password
+                            })
+                        }
+                    );
+
+                    const texto =
+                        await respuesta.text();
+
+                    console.log(
+                        "Estado del servidor:",
+                        respuesta.status
+                    );
+
+                    console.log(
+                        "Respuesta del servidor:",
+                        texto
+                    );
+
+                    let datos;
+
+                    try {
+
+                        datos = JSON.parse(texto);
+
+                    } catch (errorJSON) {
+
+                        throw new Error(
+                            "El servidor no devolvió una respuesta válida."
+                        );
+
+                    }
+
+                    if (!respuesta.ok) {
+
+                        error.textContent =
+                            datos.error ||
+                            "Correo o contraseña incorrectos.";
+
+                        error.style.display = "block";
+
+                        return;
+                    }
+
+                    // Guardar información del usuario
+                    localStorage.setItem(
+                        "usuario",
+                        JSON.stringify(datos.usuario)
+                    );
+
+                    // Mostrar mensaje de éxito
+                    success.style.display = "block";
+
+                    // Esperar un momento y entrar al catálogo
+                    setTimeout(function() {
+
+                        window.location.href = "index.html";
+
+                    }, 500);
+
+                } catch (e) {
+
+                    console.error(
+                        "ERROR REAL DEL LOGIN:",
+                        e
+                    );
+
+                    error.textContent =
+                        "Error de conexión: " + e.message;
+
+                    error.style.display = "block";
+                }
+
+            });
+
+    </script>
+
+</body>
+
+</html>

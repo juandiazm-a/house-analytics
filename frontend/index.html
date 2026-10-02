@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>House Analytics</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        /* ==============================
+           USUARIO CONECTADO
+           ============================== */
+
+        .usuario-barra {
+            max-width: 1200px;
+            margin: 20px auto 0;
+            padding: 14px 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .usuario-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .usuario-icono {
+            font-size: 30px;
+        }
+
+        .usuario-texto strong {
+            display: block;
+            font-size: 16px;
+        }
+
+        .usuario-texto span {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .rol-admin {
+            color: #1e3c72 !important;
+            font-weight: bold;
+        }
+
+        .rol-usuario {
+            color: #555 !important;
+        }
+
+        .btn-cerrar-sesion {
+            border: none;
+            background: #e74c3c;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-cerrar-sesion:hover {
+            background: #c0392b;
+        }
+
+        /* ==============================
+           PANEL ADMINISTRADOR
+           ============================== */
+
+        .panel-admin {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #eef4ff;
+            border-left: 5px solid #1e3c72;
+            border-radius: 10px;
+        }
+
+        .panel-admin h2 {
+            margin-bottom: 8px;
+            color: #1e3c72;
+        }
+
+        .panel-admin p {
+            margin: 0;
+            color: #555;
+        }
+
+        @media (max-width: 700px) {
+
+            .usuario-barra {
+                margin-left: 15px;
+                margin-right: 15px;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn-cerrar-sesion {
+                width: 100%;
+            }
+
+            .panel-admin {
+                margin-left: 15px;
+                margin-right: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ==============================
+         ENCABEZADO
+         ============================== -->
+
+    <header>
+
+        <div class="header-contenido">
+
+            <h1>🏠 House Analytics</h1>
+
+            <p>
+                Encuentra una vivienda según tus necesidades
+            </p>
+
+        </div>
+
+    </header>
+
+
+    <!-- ==============================
+         USUARIO CONECTADO
+         ============================== -->
+
+    <div class="usuario-barra">
+
+        <div class="usuario-info">
+
+            <div
+                class="usuario-icono"
+                id="usuarioIcono"
+            >
+                👤
+            </div>
+
+            <div class="usuario-texto">
+
+                <strong id="nombreUsuario">
+                    Usuario
+                </strong>
+
+                <span id="rolUsuario">
+                    Usuario
+                </span>
+
+            </div>
+
+        </div>
+
+        <button
+            class="btn-cerrar-sesion"
+            onclick="cerrarSesion()"
+        >
+            🚪 Cerrar sesión
+        </button>
+
+    </div>
+
+
+    <!-- ==============================
+         PANEL ADMINISTRADOR
+         ============================== -->
+
+    <section
+        id="panelAdmin"
+        class="panel-admin"
+        style="display: none;"
+    >
+
+        <h2>
+            👨‍💼 Panel de administrador
+        </h2>
+
+        <p>
+            Has iniciado sesión como administrador.
+            Puedes consultar el catálogo y supervisar la información
+            disponible en House Analytics.
+        </p>
+
+    </section>
+
+
+    <main>
+
+        <!-- ==============================
+             RESUMEN
+             ============================== -->
+
+        <section class="resumen">
+
+            <div class="indicador">
+
+                <span>🏠</span>
+
+                <div>
+
+                    <h3 id="totalViviendas">
+                        0
+                    </h3>
+
+                    <p>
+                        Viviendas
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="indicador">
+
+                <span>💰</span>
+
+                <div>
+
+                    <h3 id="precioPromedio">
+                        $0
+                    </h3>
+
+                    <p>
+                        Precio promedio
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="indicador">
+
+                <span>📐</span>
+
+                <div>
+
+                    <h3 id="areaPromedio">
+                        0
+                    </h3>
+
+                    <p>
+                        m² promedio
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="indicador">
+
+                <span>🛏️</span>
+
+                <div>
+
+                    <h3 id="habitacionesPromedio">
+                        0
+                    </h3>
+
+                    <p>
+                        Habitaciones promedio
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==============================
+             FILTROS
+             ============================== -->
+
+        <section class="filtros">
+
+            <h2>
+                🔎 Buscar viviendas
+            </h2>
+
+            <div class="filtros-grid">
+
+                <div>
+
+                    <label>
+                        Precio máximo
+                    </label>
+
+                    <input
+                        type="number"
+                        id="precio"
+                        placeholder="Ej: 300000"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Metros cuadrados mínimos
+                    </label>
+
+                    <input
+                        type="number"
+                        id="metros"
+                        placeholder="Ej: 1000"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Habitaciones
+                    </label>
+
+                    <input
+                        type="number"
+                        id="habitaciones"
+                        placeholder="Ej: 3"
+                    >
+
+                </div>
+
+
+                <div>
+
+                    <label>
+                        Baños
+                    </label>
+
+                    <input
+                        type="number"
+                        id="banos"
+                        placeholder="Ej: 2"
+                    >
+
+                </div>
+
+            </div>
+
+
+            <div class="botones-filtros">
+
+                <button
+                    class="btn-principal"
+                    onclick="buscarViviendas()"
+                >
+                    🔍 Buscar
+                </button>
+
+                <button
+                    class="btn-secundario"
+                    onclick="limpiarFiltros()"
+                >
+                    Limpiar filtros
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ==============================
+             VIVIENDAS
+             ============================== -->
+
+        <section>
+
+            <div class="titulo-viviendas">
+
+                <div>
+
+                    <h2>
+                        Viviendas disponibles
+                    </h2>
+
+                    <p id="cantidadResultados">
+                        Mostrando viviendas
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="viviendas"
+                class="viviendas-grid"
+            >
+
+                <p>
+                    Cargando viviendas...
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ==============================
+         MODAL DE DETALLES
+         ============================== -->
+
+    <div
+        id="modal"
+        class="modal"
+    >
+
+        <div class="modal-contenido">
+
+            <button
+                class="cerrar"
+                onclick="cerrarModal()"
+            >
+                ×
+            </button>
+
+
+            <div class="modal-icono">
+                🏠
+            </div>
+
+
+            <h2 id="modalTitulo">
+                Vivienda
+            </h2>
+
+
+            <div
+                class="modal-precio"
+                id="modalPrecio"
+            >
+                $0
+            </div>
+
+
+            <div class="modal-datos">
+
+                <div>
+
+                    <span>
+                        📐
+                    </span>
+
+                    <strong id="modalMetros">
+                        0
+                    </strong>
+
+                    <p>
+                        Metros cuadrados
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        🛏️
+                    </span>
+
+                    <strong id="modalHabitaciones">
+                        0
+                    </strong>
+
+                    <p>
+                        Habitaciones
+                    </p>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        🚿
+                    </span>
+
+                    <strong id="modalBanos">
+                        0
+                    </strong>
+
+                    <p>
+                        Baños
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <button
+                class="btn-principal modal-boton"
+                onclick="cerrarModal()"
+            >
+                Cerrar
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <script>
+
+        // ==========================================
+        // VERIFICAR USUARIO
+        // ==========================================
+
+        const usuarioGuardado =
+            localStorage.getItem("usuario");
+
+
+        if (!usuarioGuardado) {
+
+            window.location.href = "login.html";
+
+        }
+
+
+        let usuarioActual;
+
+        try {
+
+            usuarioActual =
+                JSON.parse(usuarioGuardado);
+
+        } catch (error) {
+
+            localStorage.removeItem("usuario");
+
+            window.location.href = "login.html";
+
+        }
+
+
+        // ==========================================
+        // MOSTRAR INFORMACIÓN DEL USUARIO
+        // ==========================================
+
+        function mostrarUsuario() {
+
+            if (!usuarioActual) {
+                return;
+            }
+
+            document.getElementById(
+                "nombreUsuario"
+            ).textContent =
+                usuarioActual.nombre;
+
+
+            const rolElemento =
+                document.getElementById("rolUsuario");
+
+
+            if (
+                usuarioActual.rol ===
+                "administrador"
+            ) {
+
+                rolElemento.textContent =
+                    "👨‍💼 Administrador";
+
+                rolElemento.className =
+                    "rol-admin";
+
+
+                document.getElementById(
+                    "usuarioIcono"
+                ).textContent =
+                    "👨‍💼";
+
+
+                document.getElementById(
+                    "panelAdmin"
+                ).style.display =
+                    "block";
+
+            } else {
+
+                rolElemento.textContent =
+                    "👤 Usuario";
+
+                rolElemento.className =
+                    "rol-usuario";
+
+
+                document.getElementById(
+                    "usuarioIcono"
+                ).textContent =
+                    "👤";
+
+            }
+
+        }
+
+
+        // ==========================================
+        // CERRAR SESIÓN
+        // ==========================================
+
+        function cerrarSesion() {
+
+            localStorage.removeItem(
+                "usuario"
+            );
+
+            window.location.href =
+                "login.html";
+
+        }
+
+
+        // ==========================================
+        // VARIABLES
+        // ==========================================
+
+        let todasLasViviendas = [];
+
+
+        // ==========================================
+        // CARGAR VIVIENDAS
+        // ==========================================
+
+        async function cargarViviendas() {
+
+            try {
+
+                const respuesta =
+                    await fetch(
+                        "http://127.0.0.1:5000/api/viviendas"
+                    );
+
+
+                if (!respuesta.ok) {
+
+                    throw new Error(
+                        "Error al obtener las viviendas"
+                    );
+
+                }
+
+
+                todasLasViviendas =
+                    await respuesta.json();
+
+
+                actualizarResumen(
+                    todasLasViviendas
+                );
+
+
+                mostrarViviendas(
+                    todasLasViviendas
+                );
+
+            }
+
+            catch (error) {
+
+                document.getElementById(
+                    "viviendas"
+                ).innerHTML = `
+
+                    <div class="error">
+
+                        ❌ No se pudo conectar
+                        con el servidor.
+
+                    </div>
+
+                `;
+
+                console.error(error);
+
+            }
+
+        }
+
+
+        // ==========================================
+        // RESUMEN
+        // ==========================================
+
+        function actualizarResumen(
+            viviendas
+        ) {
+
+            if (
+                viviendas.length === 0
+            ) {
+
+                document.getElementById(
+                    "totalViviendas"
+                ).textContent = "0";
+
+
+                document.getElementById(
+                    "precioPromedio"
+                ).textContent = "$0";
+
+
+                document.getElementById(
+                    "areaPromedio"
+                ).textContent = "0";
+
+
+                document.getElementById(
+                    "habitacionesPromedio"
+                ).textContent = "0";
+
+
+                return;
+
+            }
+
+
+            const precioPromedio =
+                viviendas.reduce(
+                    (
+                        total,
+                        vivienda
+                    ) =>
+                        total +
+                        vivienda.Precio,
+                    0
+                ) /
+                viviendas.length;
+
+
+            const areaPromedio =
+                viviendas.reduce(
+                    (
+                        total,
+                        vivienda
+                    ) =>
+                        total +
+                        vivienda.MetrosCuadrados,
+                    0
+                ) /
+                viviendas.length;
+
+
+            const habitacionesPromedio =
+                viviendas.reduce(
+                    (
+                        total,
+                        vivienda
+                    ) =>
+                        total +
+                        vivienda.Habitaciones,
+                    0
+                ) /
+                viviendas.length;
+
+
+            document.getElementById(
+                "totalViviendas"
+            ).textContent =
+                viviendas.length;
+
+
+            document.getElementById(
+                "precioPromedio"
+            ).textContent =
+                "$" +
+                Math.round(
+                    precioPromedio
+                ).toLocaleString();
+
+
+            document.getElementById(
+                "areaPromedio"
+            ).textContent =
+                Math.round(
+                    areaPromedio
+                ).toLocaleString();
+
+
+            document.getElementById(
+                "habitacionesPromedio"
+            ).textContent =
+                habitacionesPromedio.toFixed(1);
+
+        }
+
+
+        // ==========================================
+        // MOSTRAR VIVIENDAS
+        // ==========================================
+
+        function mostrarViviendas(
+            viviendas
+        ) {
+
+            const contenedor =
+                document.getElementById(
+                    "viviendas"
+                );
+
+
+            contenedor.innerHTML = "";
+
+
+            document.getElementById(
+                "cantidadResultados"
+            ).textContent =
+                `Mostrando ${viviendas.length} viviendas`;
+
+
+            if (
+                viviendas.length === 0
+            ) {
+
+                contenedor.innerHTML = `
+
+                    <div class="sin-resultados">
+
+                        <div>
+                            🏠
+                        </div>
+
+                        <h3>
+                            No encontramos viviendas
+                        </h3>
+
+                        <p>
+                            Prueba modificando
+                            los filtros.
+                        </p>
+
+                    </div>
+
+                `;
+
+                return;
+
+            }
+
+
+            viviendas.forEach(
+                vivienda => {
+
+                    const tarjeta =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    tarjeta.className =
+                        "tarjeta";
+
+
+                    tarjeta.innerHTML = `
+
+                        <div class="imagen-casa">
+                            🏠
+                        </div>
+
+
+                        <div class="tarjeta-contenido">
+
+                            <span class="etiqueta">
+                                Vivienda #${vivienda.ID}
+                            </span>
+
+
+                            <h3>
+                                Propiedad residencial
+                            </h3>
+
+
+                            <p class="precio">
+                                $${vivienda.Precio.toLocaleString()}
+                            </p>
+
+
+                            <div class="datos">
+
+                                <span>
+                                    📐
+                                    ${vivienda.MetrosCuadrados.toLocaleString()}
+                                    m²
+                                </span>
+
+
+                                <span>
+                                    🛏️
+                                    ${vivienda.Habitaciones}
+                                    habitaciones
+                                </span>
+
+
+                                <span>
+                                    🚿
+                                    ${vivienda.Baños}
+                                    baños
+                                </span>
+
+                            </div>
+
+
+                            <button
+                                class="btn-principal boton-detalles"
+                                onclick="verVivienda(${vivienda.ID})"
+                            >
+                                Ver detalles
+                            </button>
+
+                        </div>
+
+                    `;
+
+
+                    contenedor.appendChild(
+                        tarjeta
+                    );
+
+                }
+            );
+
+        }
+
+
+        // ==========================================
+        // FILTROS
+        // ==========================================
+
+        function buscarViviendas() {
+
+            const precio =
+                Number(
+                    document.getElementById(
+                        "precio"
+                    ).value
+                );
+
+
+            const metros =
+                Number(
+                    document.getElementById(
+                        "metros"
+                    ).value
+                );
+
+
+            const habitaciones =
+                Number(
+                    document.getElementById(
+                        "habitaciones"
+                    ).value
+                );
+
+
+            const banos =
+                Number(
+                    document.getElementById(
+                        "banos"
+                    ).value
+                );
+
+
+            const resultados =
+                todasLasViviendas.filter(
+                    vivienda => {
+
+                        return (
+
+                            (
+                                !precio ||
+                                vivienda.Precio <= precio
+                            )
+
+                            &&
+
+                            (
+                                !metros ||
+                                vivienda.MetrosCuadrados >= metros
+                            )
+
+                            &&
+
+                            (
+                                !habitaciones ||
+                                vivienda.Habitaciones == habitaciones
+                            )
+
+                            &&
+
+                            (
+                                !banos ||
+                                vivienda.Baños == banos
+                            )
+
+                        );
+
+                    }
+                );
+
+
+            mostrarViviendas(
+                resultados
+            );
+
+        }
+
+
+        // ==========================================
+        // LIMPIAR FILTROS
+        // ==========================================
+
+        function limpiarFiltros() {
+
+            document.getElementById(
+                "precio"
+            ).value = "";
+
+
+            document.getElementById(
+                "metros"
+            ).value = "";
+
+
+            document.getElementById(
+                "habitaciones"
+            ).value = "";
+
+
+            document.getElementById(
+                "banos"
+            ).value = "";
+
+
+            mostrarViviendas(
+                todasLasViviendas
+            );
+
+        }
+
+
+        // ==========================================
+        // VER DETALLES
+        // ==========================================
+
+        function verVivienda(id) {
+
+            const vivienda =
+                todasLasViviendas.find(
+                    v => v.ID === id
+                );
+
+
+            if (!vivienda) {
+                return;
+            }
+
+
+            document.getElementById(
+                "modalTitulo"
+            ).textContent =
+                `Vivienda #${vivienda.ID}`;
+
+
+            document.getElementById(
+                "modalPrecio"
+            ).textContent =
+                "$" +
+                vivienda.Precio.toLocaleString();
+
+
+            document.getElementById(
+                "modalMetros"
+            ).textContent =
+                vivienda.MetrosCuadrados
+                    .toLocaleString();
+
+
+            document.getElementById(
+                "modalHabitaciones"
+            ).textContent =
+                vivienda.Habitaciones;
+
+
+            document.getElementById(
+                "modalBanos"
+            ).textContent =
+                vivienda.Baños;
+
+
+            document.getElementById(
+                "modal"
+            ).classList.add(
+                "mostrar"
+            );
+
+        }
+
+
+        // ==========================================
+        // CERRAR MODAL
+        // ==========================================
+
+        function cerrarModal() {
+
+            document.getElementById(
+                "modal"
+            ).classList.remove(
+                "mostrar"
+            );
+
+        }
+
+
+        // ==========================================
+        // CERRAR MODAL HACIENDO CLIC AFUERA
+        // ==========================================
+
+        window.onclick =
+            function(event) {
+
+                const modal =
+                    document.getElementById(
+                        "modal"
+                    );
+
+
+                if (
+                    event.target === modal
+                ) {
+
+                    cerrarModal();
+
+                }
+
+            };
+
+
+        // ==========================================
+        // INICIAR
+        // ==========================================
+
+        mostrarUsuario();
+
+        cargarViviendas();
+
+    </script>
+
+</body>
+
+</html>
